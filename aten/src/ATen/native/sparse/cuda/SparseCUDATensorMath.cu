@@ -708,4 +708,11 @@ Tensor _sparse_sum_backward_cuda(const Tensor& grad_, const SparseTensor& input_
   }
 }
 
+
+// --------------------------------------------------------------------
+// sparse.max() backward
+// --------------------------------------------------------------------
+
+
+
 }} // namespace at::native

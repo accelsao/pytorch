@@ -3002,6 +3002,20 @@
       SparseCPU: _sparse_sum_backward_cpu
       SparseCUDA: _sparse_sum_backward_cuda
 
+- func: _sparse_max(Tensor self) -> Tensor
+  use_c10_dispatcher: full
+
+- func: _sparse_max.dtype(Tensor self, *, ScalarType dtype) -> Tensor
+
+- func: _sparse_max.dim(Tensor self, int[1] dim) -> Tensor
+
+- func: _sparse_max.dim_dtype(Tensor self, int[1] dim, *, ScalarType dtype) -> Tensor
+
+- func: _sparse_max_backward(Tensor grad, Tensor self, int[] dim) -> Tensor
+  dispatch:
+      SparseCPU: _sparse_max_backward_cpu
+      SparseCUDA: _sparse_max_backward_cuda
+
 - func: norm.ScalarOpt_dtype(Tensor self, Scalar? p, *, ScalarType dtype) -> Tensor
   variants: function, method
 

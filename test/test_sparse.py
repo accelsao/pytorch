@@ -1149,6 +1149,79 @@ class TestSparse(TestCase):
             S = self._gen_sparse(sparse_dims, nnz, with_size)[0]
             run_tests(S.requires_grad_(True), test_dim)
 
+    @skipIfRocm
+    def test_sparse_max(self):
+        print('I am Here')
+
+        def run_tests(S, td=None):
+            D = S.coalesce().to_dense().detach().requires_grad_(True)
+            mask = (D == 0)
+            if td is None:
+                S_max = torch.sparse.max(S)
+                D_max = D.max()
+                self.assertEqual(S_max, D_max)
+
+                def fn(S):
+                    res = torch.sparse.max(S)
+                    if res.is_sparse:
+                        res = res.to_dense()
+                    return res
+                gradcheck(fn, (S,), check_sparse_nnz=True)
+
+            else:
+                S_max = torch.sparse.max(S, td)
+                D_max = D.max(td)
+                self.assertEqual(S_max.to_dense() if S_max.is_sparse else S_max, D_max)
+
+                def fn(S):
+                    res = torch.sparse.max(S, td)
+                    if res.is_sparse:
+                        res = res.to_dense()
+                    return res
+                gradcheck(fn, (S,), check_sparse_nnz=True)
+
+        nnz = 10
+        sparse_dims = 2
+        with_size = [5, 5, 1, 4]  # use a dense dim = 1 to test for squeeze
+        test_dims = []
+        for i in range(1, 5):
+            test_dims += itertools.combinations(range(len(with_size)), i)
+
+        # https://github.com/pytorch/pytorch/issues/16501
+        x = torch.tensor([[1., 0., 0., 1.],
+                          [0., 1., 0., 0.],
+                          [0., 1., 1., 0.],
+                          [0., 1., 0., 2.]]).to_sparse()
+        self.assertEqual(torch.sparse.max(x, dim=0), torch.sparse.max(x, dim=-2))
+        self.assertEqual(torch.max(x.to_dense(), dim=0), torch.sparse.max(x, dim=0).to_dense())
+
+        # not support SparseTensor.max()
+        S = self._gen_sparse(sparse_dims, nnz, with_size)[0]
+        self.assertRaises(RuntimeError, lambda: S.sum())
+
+        # dim out of range
+        self.assertRaises(IndexError, lambda: torch.sparse.max(S, 5))
+
+        # dim 0 appears multiple times in the list of dims
+        self.assertRaises(RuntimeError, lambda: torch.sparse.max(S, [0, 0]))
+
+        # max an empty tensor
+        empty_S = torch.sparse_coo_tensor(size=with_size)
+        self.assertRaises(RuntimeError, lambda: torch.sparse.max(empty_S, [0]))
+        self.assertEqual(torch.sparse.max(empty_S), torch.tensor(0,))
+        empty_S.requires_grad_(True)
+        empty_S_max = torch.sparse.max(empty_S)
+        empty_S_max.backward()
+        self.assertEqual(empty_S.grad.to_dense(), empty_S.clone().detach().to_dense())
+
+        # test values().max()
+        S = self._gen_sparse(sparse_dims, nnz, with_size)[0]
+        run_tests(S.requires_grad_(True))
+
+        for test_dim in test_dims:
+            S = self._gen_sparse(sparse_dims, nnz, with_size)[0]
+            run_tests(S.requires_grad_(True), test_dim)
+
     def _test_basic_ops_shape(self, nnz_x1, nnz_x2, shape_i, shape_v=None):
         shape = shape_i + (shape_v or [])
         x1, _, _ = self._gen_sparse(len(shape_i), nnz_x1, shape)

@@ -5,6 +5,7 @@ __all__ = [
     'addmm',
     'mm',
     'sum',
+    'max',
 ]
 
 
@@ -134,3 +135,6 @@ def sum(input, dim=None, dtype=None):
             return torch._sparse_sum(input, dim, dtype=dtype)
         else:
             return torch._sparse_sum(input, dtype=dtype)
+
+def max(input, dim=None, dtype=None):
+    

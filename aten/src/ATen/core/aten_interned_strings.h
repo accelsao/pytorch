@@ -121,6 +121,7 @@ _(aten, _sparse_coo_tensor_unsafe) \
 _(aten, _sparse_dense_add) \
 _(aten, _sparse_div_scalar) \
 _(aten, _sparse_div_zerodim) \
+_(aten, _sparse_max) \
 _(aten, _sparse_mul) \
 _(aten, _sparse_mul_scalar) \
 _(aten, _sparse_mul_zerodim) \

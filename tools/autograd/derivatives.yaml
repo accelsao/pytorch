@@ -967,6 +967,9 @@
 - name: _sparse_sum.dim(Tensor self, int[1] dim) -> Tensor
   self: at::_sparse_sum_backward(grad, self, dim)
 
+- name: _sparse_max.dim(Tensor self, int[1] dim) -> Tensor
+  self: at::_sparse_max_backward(grad, self, dim)
+
 - name: _standard_gamma(Tensor self, Generator? generator=None) -> Tensor
   self: grad * _standard_gamma_grad(self, result)
 
